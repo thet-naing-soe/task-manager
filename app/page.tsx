@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/button';
 import ThemeToggle from '@/components/theme-toggle';
+import { getCurrentUser } from '@/lib/auth-client';
+import Link from 'next/link';
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="absolute top-4 right-4">
@@ -12,16 +16,16 @@ export default function Home() {
         <p className="text-lg text-muted-foreground">
           Welcome to your task management system
         </p>
-        <div className="flex gap-4 justify-center">
-          <Button>Default Button</Button>
-          <Button variant="outline">Outline Button</Button>
-          <Button variant="destructive">Delete</Button>
-        </div>
-        <div className="mt-8 p-6 rounded-lg border bg-card">
-          <h2 className="text-2xl font-semibold mb-2">Card Example</h2>
-          <p className="text-muted-foreground">
-            This card will change colors based on theme
-          </p>
+        <div>
+          {user ? (
+            <Button asChild>
+              <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/auth/signin">Sign In</Link>
+            </Button>
+          )}
         </div>
       </div>
     </main>
