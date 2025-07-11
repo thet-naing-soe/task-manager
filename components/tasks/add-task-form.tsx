@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createTaskSchema, type CreateTaskInput } from '@/lib/validations/task';
@@ -23,12 +22,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Priority } from '@prisma/client';
-import { useRouter } from 'next/navigation';
+import { useCreateTask } from '@/hooks/use-tasks';
+import { Loader2 } from 'lucide-react';
 
 export function AddTaskForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
   const form = useForm<CreateTaskInput>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
@@ -38,28 +35,14 @@ export function AddTaskForm() {
     },
   });
 
-  const onSubmit = async (data: CreateTaskInput) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+  const { mutate: addTask, isPending } = useCreateTask();
 
-      if (!response.ok) {
-        throw new Error('Failed to create task');
-      }
-
-      form.reset();
-      router.refresh();
-    } catch (error) {
-      console.error('Error creating task:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: CreateTaskInput) => {
+    addTask(data, {
+      onSuccess: () => {
+        form.reset();
+      },
+    });
   };
 
   return (
@@ -72,7 +55,11 @@ export function AddTaskForm() {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="Enter task title" {...field} />
+                <Input
+                  placeholder="Enter task title"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,6 +77,7 @@ export function AddTaskForm() {
                   placeholder="Enter task description (optional)"
                   {...field}
                   value={field.value || ''}
+                  disabled={isPending}
                 />
               </FormControl>
               <FormMessage />
@@ -103,7 +91,11 @@ export function AddTaskForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Priority</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isPending}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
@@ -128,15 +120,27 @@ export function AddTaskForm() {
             <FormItem>
               <FormLabel>Due Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} value={field.value || ''} />
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value || ''}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? 'Creating...' : 'Create Task'}
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            'Create Task'
+          )}
         </Button>
       </form>
     </Form>

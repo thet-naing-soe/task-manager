@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { UserAvatar } from '@/components/auth/user-avatar';
-import ThemeToggle from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { getCurrentUser } from '@/lib/auth-client';
 import { AddTaskForm } from '@/components/tasks/add-task-form';
 import { TaskList } from '@/components/tasks/task-list';

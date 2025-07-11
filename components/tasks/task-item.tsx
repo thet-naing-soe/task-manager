@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Task, Priority } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -8,15 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { useDeleteTask, useUpdateTask } from '@/hooks/use-tasks';
 
 interface TaskItemProps {
   task: Task;
 }
 
 export function TaskItem({ task }: TaskItemProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
 
   const priorityColors = {
     [Priority.LOW]:
@@ -29,60 +28,24 @@ export function TaskItem({ task }: TaskItemProps) {
       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
   };
 
-  async function handleToggleComplete() {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          completed: !task.completed,
-        }),
-      });
+  const handleToggleComplete = () => {
+    updateTask({ id: task.id, data: { completed: !task.completed } });
+  };
 
-      if (!response.ok) {
-        throw new Error('Failed to update task');
-      }
-
-      router.refresh();
-    } catch (error) {
-      console.error('Error updating task:', error);
-    } finally {
-      setIsLoading(false);
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this task?')) {
+      deleteTask(task.id);
     }
-  }
+  };
 
-  async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this task?')) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete task');
-      }
-
-      router.refresh();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const isLoading = isUpdating || isDeleting;
 
   return (
     <div
       className={cn(
         'flex items-start space-x-3 p-4 rounded-lg border bg-card transition-all',
         task.completed && 'opacity-60',
-        isLoading && 'pointer-events-none opacity-50'
+        isLoading && 'animate-pulse'
       )}
     >
       <Checkbox

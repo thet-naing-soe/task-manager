@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import ThemeToggle from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { getCurrentUser } from '@/lib/auth-client';
 import Link from 'next/link';
 
