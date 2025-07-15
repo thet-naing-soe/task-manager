@@ -1,122 +1,172 @@
 'use client';
 
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Task } from '@prisma/client';
-import { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Task } from '@prisma/client';
+import * as taskApi from '@/lib/api/tasks';
+import { QUERY_KEYS } from '@/lib/constants/tasks';
+import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
 
-// Tasks fetch function
-const getTasks = async (): Promise<Task[]> => {
-  const res = await fetch('/api/tasks');
-  if (!res.ok) {
-    throw new Error('Failed to fetch tasks');
+// Helper function for error messages
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred';
+}
+
+// Helper function for date conversion
+function convertToDate(
+  dateValue: string | Date | null | undefined
+): Date | null {
+  if (!dateValue) return null;
+  if (dateValue instanceof Date) return dateValue;
+
+  try {
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
   }
-  return res.json();
-};
+}
 
-// Tasks hook
+// Fetch all tasks
 export function useTasks() {
-  return useQuery({
-    queryKey: ['tasks'],
-    queryFn: getTasks,
+  return useQuery<Task[], Error>({
+    queryKey: QUERY_KEYS.tasks.all,
+    queryFn: taskApi.fetchTasks,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Create task function
-const createTask = async (data: CreateTaskInput): Promise<Task[]> => {
-  const res = await fetch('/api/tasks', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => {
-      error: 'Failed to create task';
-    });
-    throw new Error(errorData.error || 'Failed to create task');
-  }
-  return res.json();
-};
-
-// Create task hook
+// Create task
 export function useCreateTask() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: createTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  return useMutation<Task, Error, CreateTaskInput>({
+    mutationFn: taskApi.createTask,
+    onSuccess: (newTask) => {
+      // Optimistically add to cache
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
+        if (!oldTasks) return [newTask];
+        return [...oldTasks, newTask];
+      });
+
       toast.success('Task created successfully!');
     },
     onError: (error) => {
-      toast.error(error.message || 'Faild to create task.');
+      toast.error(getErrorMessage(error));
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.tasks.all,
+      });
     },
   });
 }
 
-// Update task function
-const updateTask = async ({
-  id,
-  data,
-}: {
-  id: string;
-  data: UpdateTaskInput;
-}): Promise<Task[]> => {
-  const res = await fetch(`/api/tasks/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to update task');
-  }
-  return res.json();
-};
-
-// Update task hook
+// Update task
 export function useUpdateTask() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: updateTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  return useMutation<
+    Task,
+    Error,
+    { id: string; data: UpdateTaskInput },
+    { previousTasks?: Task[] }
+  >({
+    mutationFn: ({ id, data }) => taskApi.updateTask(id, data),
+    onMutate: async ({ id, data }) => {
+      // Cancel any in-flight queries
+      await queryClient.cancelQueries({
+        queryKey: QUERY_KEYS.tasks.all,
+      });
+
+      // Snapshot previous value
+      const previousTasks = queryClient.getQueryData<Task[]>(
+        QUERY_KEYS.tasks.all
+      );
+
+      // Optimistically update
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
+        if (!oldTasks) return [];
+        return oldTasks.map((task) => {
+          if (task.id === id) {
+            const updateTask = { ...task, data };
+            if (data.dueDate !== undefined) {
+              updateTask.dueDate = convertToDate(data.dueDate);
+            }
+            return updateTask;
+          }
+          return task;
+        });
+      });
+
+      return { previousTasks };
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to update task.');
+    onError: (error, _, context) => {
+      // Rollback on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+      }
+      toast.error(getErrorMessage(error));
+    },
+    onSuccess: (_, variables) => {
+      // Show appropriate message
+      if (variables.data.completed !== undefined) {
+        const message = variables.data.completed
+          ? 'Task marked as complete!'
+          : 'Task marked as incomplete!';
+        toast.success(message);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.tasks.all,
+      });
     },
   });
 }
 
-// Delete task function
-const deleteTask = async (id: string): Promise<any> => {
-  const res = await fetch(`/api/tasks/${id}`, {
-    method: 'DELETE',
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to delete task');
-  }
-  return res.json();
-};
-
-// Delete task hook
+// Delete task
 export function useDeleteTask() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: deleteTask,
+  return useMutation<
+    { success: boolean },
+    Error,
+    string,
+    { previousTasks?: Task[] }
+  >({
+    mutationFn: taskApi.deleteTask,
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: QUERY_KEYS.tasks.all,
+      });
+
+      const previousTasks = queryClient.getQueryData<Task[]>(
+        QUERY_KEYS.tasks.all
+      );
+
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
+        if (!oldTasks) return [];
+        return oldTasks.filter((task) => task.id !== taskId);
+      });
+
+      return { previousTasks };
+    },
+    onError: (error, _, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+      }
+      toast.error(getErrorMessage(error));
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task deleted successfully!');
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to delete task.');
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.tasks.all,
+      });
     },
   });
 }
