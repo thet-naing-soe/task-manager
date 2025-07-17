@@ -9,16 +9,17 @@ import { TaskSkeleton } from '@/components/tasks/task-list/task-skeleton';
 import { EmptyState } from '@/components/tasks/task-list/empty-state';
 import { ErrorState } from '@/components/tasks/task-list/error-state';
 import { TaskFilters } from '@/components/tasks/task-list/task-filter';
+import { PRIORITY_ORDER } from '@/lib/constants/tasks';
 
 export function TaskList() {
   const { data: tasks, isLoading, error } = useTasks();
 
-  const { searchQuery, status, priority } = useFilterStore();
+  const { searchQuery, status, priority, sortBy } = useFilterStore();
 
-  const filteredTasks = useMemo(() => {
+  const processedTasks = useMemo(() => {
     if (!tasks) return [];
 
-    return tasks.filter((task) => {
+    const filteredTasks = tasks.filter((task) => {
       // Status filter
       if (status !== 'all') {
         if (status === 'completed' && !task.completed) return false;
@@ -40,7 +41,26 @@ export function TaskList() {
 
       return true;
     });
-  }, [tasks, searchQuery, status, priority]); // Dependencies
+
+    const sortedTasks = [...filteredTasks].sort((a, b) => {
+      switch (sortBy) {
+        case 'priority':
+          return PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
+
+        case 'dueDate':
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+
+        case 'createAt':
+        default:
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+      }
+    });
+    return sortedTasks;
+  }, [tasks, searchQuery, status, priority, sortBy]); // Dependencies
 
   if (isLoading) {
     return <TaskSkeleton />;
@@ -52,13 +72,13 @@ export function TaskList() {
 
   return (
     <div>
-      <TaskFilters /> {/* Filter UI */}
-      {filteredTasks.length === 0 ? (
+      <TaskFilters />
+      {processedTasks.length === 0 ? (
         <EmptyState />
       ) : (
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">
-            {filteredTasks.map((task) => (
+            {processedTasks.map((task) => (
               <TaskItem key={task.id} task={task} />
             ))}
           </div>

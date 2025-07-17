@@ -9,16 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PRIORITY_OPTIONS } from '@/lib/constants/tasks';
+import { PRIORITY_OPTIONS, SORT_OPTIONS } from '@/lib/constants/tasks';
 
 export function TaskFilters() {
   const {
     searchQuery,
     status,
     priority,
+    sortBy,
     setSearchQuery,
     setStatus,
     setPriority,
+    setSortBy,
   } = useFilterStore();
 
   return (
@@ -56,6 +58,20 @@ export function TaskFilters() {
           {PRIORITY_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label.charAt(0).toUpperCase() + option.label.slice(1)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Sort by Date */}
+      <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+        <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          {SORT_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
             </SelectItem>
           ))}
         </SelectContent>

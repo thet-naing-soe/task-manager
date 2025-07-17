@@ -31,3 +31,16 @@ export const DEFAULT_TASK_VALUES = {
   priority: Priority.MEDIUM,
   dueDate: '',
 } as const;
+
+export const SORT_OPTIONS = [
+  { value: 'createAt', label: 'Creation Date' },
+  { value: 'dueDate', label: 'Due Date' },
+  { value: 'priority', label: 'Priority' },
+];
+
+export const PRIORITY_ORDER: Record<Priority, number> = {
+  URGENT: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+};
