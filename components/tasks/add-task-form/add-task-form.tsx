@@ -15,7 +15,11 @@ import {
 } from '@/components/tasks/add-task-form/form-fields';
 import { DEFAULT_TASK_VALUES } from '@/lib/constants/tasks';
 
-export function AddTaskForm() {
+interface AddTaskFormProps {
+  onSuccess?: () => void;
+}
+
+export function AddTaskForm({ onSuccess }: AddTaskFormProps) {
   const form = useForm<CreateTaskInput>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: DEFAULT_TASK_VALUES,
@@ -27,6 +31,9 @@ export function AddTaskForm() {
     addTask(data, {
       onSuccess: () => {
         form.reset();
+        if (onSuccess) {
+          onSuccess();
+        }
       },
     });
   };

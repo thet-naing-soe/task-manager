@@ -109,7 +109,6 @@ function DeleteTaskDialog({ onDelete, isDisabled }: TaskActionsProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={onDelete}
           disabled={isDisabled}
           aria-label="Delete Task"
         >

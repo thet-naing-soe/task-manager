@@ -41,19 +41,46 @@ export function useTasks() {
 export function useCreateTask() {
   const queryClient = useQueryClient();
 
-  return useMutation<Task, Error, CreateTaskInput>({
+  return useMutation<Task, Error, CreateTaskInput, { previousTasks?: Task[] }>({
     mutationFn: taskApi.createTask,
-    onSuccess: (newTask) => {
-      // Optimistically add to cache
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
-        if (!oldTasks) return [newTask];
-        return [...oldTasks, newTask];
-      });
+    onMutate: async (newTaskData) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
+      const previousTasks = queryClient.getQueryData<Task[]>(
+        QUERY_KEYS.tasks.all
+      );
 
-      toast.success('Task created successfully!');
+      const optimisticTask: Task = {
+        id: `temp-${Date.now()}`,
+        ...newTaskData,
+        description: newTaskData.description ?? null,
+        completed: false,
+        userId: 'temp-user',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        dueDate: newTaskData.dueDate ? new Date(newTaskData.dueDate) : null,
+      };
+
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (old) =>
+        old ? [...old, optimisticTask] : [optimisticTask]
+      );
+
+      return { previousTasks };
     },
-    onError: (error) => {
-      toast.error(getErrorMessage(error));
+
+    onError: (err, _, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+      }
+      toast.error(getErrorMessage(err));
+    },
+
+    onSuccess: (newlyCreatedTask) => {
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) =>
+        oldTasks?.map((task) =>
+          task.id.startsWith('temp-') ? newlyCreatedTask : task
+        )
+      );
+      toast.success('Task created successfully!');
     },
     onSettled: () => {
       // Refetch to ensure consistency
@@ -76,47 +103,48 @@ export function useUpdateTask() {
   >({
     mutationFn: ({ id, data }) => taskApi.updateTask(id, data),
     onMutate: async ({ id, data }) => {
-      // Cancel any in-flight queries
-      await queryClient.cancelQueries({
-        queryKey: QUERY_KEYS.tasks.all,
-      });
+      // လက်ရှိ fetch နေတာတွေကို cancel လုပ်ပါ
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
 
-      // Snapshot previous value
+      // Rollback လုပ်ဖို့အတွက် မူလ data ကို backup လုပ်ပါ
       const previousTasks = queryClient.getQueryData<Task[]>(
         QUERY_KEYS.tasks.all
       );
 
-      // Optimistically update
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
-        if (!oldTasks) return [];
-        return oldTasks.map((task) => {
+      // React Query cache ကို တိုက်ရိုက် update လုပ်ပါ
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+        oldTasks.map((task) => {
           if (task.id === id) {
-            const updateTask = { ...task, data };
-            if (data.dueDate !== undefined) {
-              updateTask.dueDate = convertToDate(data.dueDate);
-            }
-            return updateTask;
+            return {
+              ...task,
+              ...data,
+              dueDate:
+                data.dueDate !== undefined
+                  ? convertToDate(data.dueDate)
+                  : task.dueDate,
+            };
           }
           return task;
-        });
-      });
+        })
+      );
 
       return { previousTasks };
     },
     onError: (error, _, context) => {
-      // Rollback on error
       if (context?.previousTasks) {
         queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
       }
-      toast.error(getErrorMessage(error));
+      toast.error(`Update failed: ${getErrorMessage(error)}`);
     },
-    onSuccess: (_, variables) => {
-      // Show appropriate message
-      if (variables.data.completed !== undefined) {
-        const message = variables.data.completed
+
+    onSuccess: (_, { data }) => {
+      if (data.completed !== undefined) {
+        const message = data.completed
           ? 'Task marked as complete!'
           : 'Task marked as incomplete!';
         toast.success(message);
+      } else {
+        toast.success('Task updated successfully!');
       }
     },
     onSettled: () => {
@@ -147,10 +175,9 @@ export function useDeleteTask() {
         QUERY_KEYS.tasks.all
       );
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) => {
-        if (!oldTasks) return [];
-        return oldTasks.filter((task) => task.id !== taskId);
-      });
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+        oldTasks.filter((task) => task.id !== taskId)
+      );
 
       return { previousTasks };
     },
@@ -158,7 +185,7 @@ export function useDeleteTask() {
       if (context?.previousTasks) {
         queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
       }
-      toast.error(getErrorMessage(error));
+      toast.error(`Failed to delete task: ${getErrorMessage(error)}`);
     },
     onSuccess: () => {
       toast.success('Task deleted successfully!');

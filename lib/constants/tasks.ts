@@ -22,8 +22,6 @@ export const PRIORITY_STYLES = {
 export const QUERY_KEYS = {
   tasks: {
     all: ['tasks'],
-    detail: (id: string) => ['tasks', id],
-    filtered: (filters: any) => ['tasks', 'filtered', filters],
   },
 } as const;
 
