@@ -1,5 +1,4 @@
-import { Control } from 'react-hook-form';
-import type { CreateTaskInput } from '@/lib/validations/task';
+import { Control, FieldValues, Path } from 'react-hook-form';
 import {
   FormControl,
   FormField,
@@ -18,22 +17,25 @@ import {
 } from '@/components/ui/select';
 import { PRIORITY_OPTIONS } from '@/lib/constants/tasks';
 
-interface FormFieldProps {
-  control: Control<CreateTaskInput>;
+interface FormFieldProps<T extends FieldValues> {
+  control: Control<T>;
   isPending: boolean;
 }
 
-export function TitleField({ control, isPending }: FormFieldProps) {
+export function TitleField<T extends FieldValues>({
+  control,
+  isPending,
+}: FormFieldProps<T>) {
   return (
     <FormField
       control={control}
-      name="title"
+      name={'title' as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Title</FormLabel>
           <FormControl>
             <Input
-              placeholder="Enter task title"
+              placeholder="e.g., Finalize project report"
               {...field}
               disabled={isPending}
             />
@@ -45,17 +47,20 @@ export function TitleField({ control, isPending }: FormFieldProps) {
   );
 }
 
-export function DescriptionField({ control, isPending }: FormFieldProps) {
+export function DescriptionField<T extends FieldValues>({
+  control,
+  isPending,
+}: FormFieldProps<T>) {
   return (
     <FormField
       control={control}
-      name="description"
+      name={'description' as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Description</FormLabel>
           <FormControl>
             <Textarea
-              placeholder="Enter task description (optional)"
+              placeholder="Add more details... (optional)"
               {...field}
               value={field.value || ''}
               disabled={isPending}
@@ -68,11 +73,14 @@ export function DescriptionField({ control, isPending }: FormFieldProps) {
   );
 }
 
-export function PriorityField({ control, isPending }: FormFieldProps) {
+export function PriorityField<T extends FieldValues>({
+  control,
+  isPending,
+}: FormFieldProps<T>) {
   return (
     <FormField
       control={control}
-      name="priority"
+      name={'priority' as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Priority</FormLabel>
@@ -101,11 +109,14 @@ export function PriorityField({ control, isPending }: FormFieldProps) {
   );
 }
 
-export function DueDateField({ control, isPending }: FormFieldProps) {
+export function DueDateField<T extends FieldValues>({
+  control,
+  isPending,
+}: FormFieldProps<T>) {
   return (
     <FormField
       control={control}
-      name="dueDate"
+      name={'dueDate' as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Due Date</FormLabel>

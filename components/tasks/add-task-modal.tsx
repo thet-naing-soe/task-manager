@@ -1,7 +1,7 @@
 'use client';
 
 import { useUIStore } from '@/lib/stores/ui-store';
-import { AddTaskForm } from '@/components/tasks/add-task-form/add-task-form';
+import { AddTaskForm } from '@/components/tasks/add-task-form';
 import {
   Dialog,
   DialogContent,

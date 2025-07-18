@@ -4,11 +4,13 @@ import { Task } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Calendar } from 'lucide-react';
+import { Trash2, Calendar, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useDeleteTask, useUpdateTask } from '@/hooks/use-tasks';
 import { PRIORITY_STYLES } from '@/lib/constants/tasks';
+import { useEditingStore } from '@/lib/stores/editing-store';
+import { EditTaskForm } from '@/components/tasks/edit-task-form';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +31,8 @@ export function TaskItem({ task }: TaskItemProps) {
   const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
   const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
   const isLoading = isUpdating || isDeleting;
+  const { editingTaskId, setEditingTaskId } = useEditingStore();
+  const isEditing = editingTaskId === task.id;
 
   const handleToggleComplete = () => {
     updateTask({ id: task.id, data: { completed: !task.completed } });
@@ -55,10 +59,29 @@ export function TaskItem({ task }: TaskItemProps) {
       />
 
       <div className="flex-1 min-w-0">
-        <TaskContent task={task} />
-        <TaskMetadata task={task} />
+        {isEditing ? (
+          <EditTaskForm task={task} />
+        ) : (
+          <>
+            <TaskContent task={task} />
+            <TaskMetadata task={task} />
+          </>
+        )}
       </div>
-      <DeleteTaskDialog onDelete={handleDelete} isDisabled={isLoading} />
+      {!isEditing && (
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setEditingTaskId(task.id)}
+            disabled={isLoading}
+            aria-label="Edit Task"
+          >
+            <Pencil className="w -4 h-4" />
+          </Button>
+          <DeleteTaskDialog onDelete={handleDelete} isDisabled={isLoading} />
+        </div>
+      )}
     </div>
   );
 }

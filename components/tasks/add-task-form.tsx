@@ -12,7 +12,7 @@ import {
   DescriptionField,
   PriorityField,
   DueDateField,
-} from '@/components/tasks/add-task-form/form-fields';
+} from '@/components/tasks/form-fields';
 import { DEFAULT_TASK_VALUES } from '@/lib/constants/tasks';
 
 interface AddTaskFormProps {

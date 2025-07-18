@@ -1,7 +1,7 @@
 'use client';
 
 import { useUIStore } from '@/lib/stores/ui-store';
-import { TaskList } from '@/components/tasks/task-list/task-list';
+import { TaskList } from '@/components/tasks/task-list';
 import {
   Card,
   CardContent,

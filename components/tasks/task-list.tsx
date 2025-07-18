@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import { useTasks } from '@/hooks/use-tasks';
 import { useFilterStore } from '@/lib/stores/filter-store';
-import { TaskItem } from '@/components/tasks/task-list/task-item';
+import { TaskItem } from '@/components/tasks/task-item';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { TaskSkeleton } from '@/components/tasks/task-list/task-skeleton';
-import { EmptyState } from '@/components/tasks/task-list/empty-state';
-import { ErrorState } from '@/components/tasks/task-list/error-state';
-import { TaskFilters } from '@/components/tasks/task-list/task-filter';
+import { TaskSkeleton } from '@/components/tasks/task-skeleton';
+import { EmptyState } from '@/components/tasks/empty-state';
+import { ErrorState } from '@/components/tasks/error-state';
+import { TaskFilters } from '@/components/tasks/task-filter';
 import { PRIORITY_ORDER } from '@/lib/constants/tasks';
 
 export function TaskList() {
