@@ -37,6 +37,15 @@ export function useTasks() {
   });
 }
 
+// Fetch specific task
+export function useTask(taskId: string) {
+  return useQuery<Task, Error>({
+    queryKey: QUERY_KEYS.tasks.detail(taskId),
+    queryFn: () => taskApi.fetchTaskById(taskId),
+    enabled: !!taskId,
+  });
+}
+
 // Create task
 export function useCreateTask() {
   const queryClient = useQueryClient();

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Task } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,7 @@ export function TaskItem({ task }: TaskItemProps) {
   return (
     <div
       className={cn(
-        'flex items-start space-x-3 p-4 rounded-lg border bg-card transition-all',
+        'group flex items-start space-x-3 p-4 rounded-lg border bg-card transition-all',
         task.completed && 'opacity-60',
         isLoading && 'animate-pulse'
       )}
@@ -62,10 +63,13 @@ export function TaskItem({ task }: TaskItemProps) {
         {isEditing ? (
           <EditTaskForm task={task} />
         ) : (
-          <>
+          <Link
+            href={`/dashboard/tasks/${task.id}`}
+            className="cursor-pointer block w-full rounded-md group:hover:bg-accent/50 p-1 m-1"
+          >
             <TaskContent task={task} />
             <TaskMetadata task={task} />
-          </>
+          </Link>
         )}
       </div>
       {!isEditing && (

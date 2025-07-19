@@ -10,6 +10,35 @@ interface RoutePrams {
   };
 }
 
+export async function GET(request: Request, { params }: RoutePrams) {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: params.taskId,
+        userId: user.id,
+      },
+    });
+
+    if (!task) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(task);
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch task' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(request: Request, { params }: RoutePrams) {
   try {
     const user = await getCurrentUser();

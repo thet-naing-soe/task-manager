@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function TaskSkeleton() {
   return (
@@ -10,5 +11,22 @@ export function TaskSkeleton() {
         </div>
       ))}
     </div>
+  );
+}
+
+export function TaskDetailSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-5 full mt-2" />
+        <Skeleton className="h-5 w-2/3 mt-1" />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Skeleton className="h-6 w-1/4" />
+        <Skeleton className="h-6 w-1/5" />
+        <Skeleton className="h-6 w-1/3" />
+      </CardContent>
+    </Card>
   );
 }

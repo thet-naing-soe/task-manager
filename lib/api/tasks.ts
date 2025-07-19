@@ -27,6 +27,13 @@ export async function fetchTasks(): Promise<Task[]> {
   return handleResponse<Task[]>(response);
 }
 
+export async function fetchTaskById(id: string): Promise<Task> {
+  const response = await fetch(`/api/tasks/${id}`, {
+    headers: getHeaders(),
+  });
+  return handleResponse<Task>(response);
+}
+
 export async function createTask(data: CreateTaskInput): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'POST',
