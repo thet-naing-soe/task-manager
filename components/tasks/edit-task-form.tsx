@@ -9,7 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import type { Task } from '@prisma/client';
 import { useEditingStore } from '@/lib/stores/editing-store';
-import { TitleField, DescriptionField } from '@/components/tasks/form-fields';
+import {
+  TitleField,
+  DescriptionField,
+  PriorityField,
+  DueDateField,
+} from '@/components/tasks/form-fields';
+import { format } from 'date-fns';
 
 interface EditTaskFormProps {
   task: Task;
@@ -23,6 +29,8 @@ export function EditTaskForm({ task }: EditTaskFormProps) {
     defaultValues: {
       title: task.title,
       description: task.description || '',
+      priority: task.priority,
+      dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
     },
   });
 
@@ -44,6 +52,10 @@ export function EditTaskForm({ task }: EditTaskFormProps) {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <TitleField control={form.control} isPending={isPending} />
         <DescriptionField control={form.control} isPending={isPending} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PriorityField control={form.control} isPending={isPending} />
+          <DueDateField control={form.control} isPending={isPending} />
+        </div>
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="ghost" onClick={clearEditingTaskId}>
             Cancel
