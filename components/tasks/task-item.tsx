@@ -5,7 +5,7 @@ import { Task } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Calendar, Pencil } from 'lucide-react';
+import { Trash2, Calendar, Pencil, Circle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useDeleteTask, useUpdateTask } from '@/hooks/use-tasks';
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useSelectionStore } from '@/lib/stores/selection-store';
 
 interface TaskItemProps {
   task: Task;
@@ -34,6 +35,8 @@ export function TaskItem({ task }: TaskItemProps) {
   const isLoading = isUpdating || isDeleting;
   const { editingTaskId, setEditingTaskId } = useEditingStore();
   const isEditing = editingTaskId === task.id;
+  const { selectedTaskIds, toggleTaskId } = useSelectionStore();
+  const isSelected = selectedTaskIds.has(task.id);
 
   const handleToggleComplete = () => {
     updateTask({ id: task.id, data: { completed: !task.completed } });
@@ -47,26 +50,23 @@ export function TaskItem({ task }: TaskItemProps) {
     <div
       className={cn(
         'group flex items-start space-x-3 p-4 rounded-lg border bg-card transition-all',
-        task.completed && 'opacity-60',
-        isLoading && 'animate-pulse'
+        task.completed && !isSelected && 'opacity-60',
+        isLoading && 'animate-pulse',
+        isSelected && 'bg-blue-500/10 border-blue-500'
       )}
     >
       <Checkbox
-        checked={task.completed}
-        onCheckedChange={handleToggleComplete}
-        disabled={isLoading}
+        checked={isSelected}
+        onCheckedChange={() => toggleTaskId(task.id)}
         className="mt-1"
-        aria-label={`Mark ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
+        aria-label={`Select task: ${task.title}`}
       />
 
       <div className="flex-1 min-w-0">
         {isEditing ? (
           <EditTaskForm task={task} />
         ) : (
-          <Link
-            href={`/dashboard/tasks/${task.id}`}
-            className="cursor-pointer block w-full rounded-md group:hover:bg-accent/50 p-1 m-1"
-          >
+          <Link href={`/dashboard/tasks/${task.id}`} className="cursor-pointer">
             <TaskContent task={task} />
             <TaskMetadata task={task} />
           </Link>
@@ -77,11 +77,26 @@ export function TaskItem({ task }: TaskItemProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={handleToggleComplete}
+            disabled={isLoading}
+            aria-label={
+              task.completed ? 'Mark as incomplete' : 'Mark as complete'
+            }
+          >
+            {task.completed ? (
+              <CheckCircle className="w-4 h-4 text-green-500" />
+            ) : (
+              <Circle className="w-4 h-4 text-muted-foreground" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setEditingTaskId(task.id)}
             disabled={isLoading}
             aria-label="Edit Task"
           >
-            <Pencil className="w -4 h-4" />
+            <Pencil className="w-4 h-4" />
           </Button>
           <DeleteTaskDialog onDelete={handleDelete} isDisabled={isLoading} />
         </div>

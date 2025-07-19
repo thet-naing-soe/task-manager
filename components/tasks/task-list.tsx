@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/tasks/empty-state';
 import { ErrorState } from '@/components/tasks/error-state';
 import { TaskFilters } from '@/components/tasks/task-filter';
 import { PRIORITY_ORDER } from '@/lib/constants/tasks';
+import { BulkActionsToolbar } from '@/components/tasks/bulk-actions-toolbar';
 
 export function TaskList() {
   const { data: tasks, isLoading, error } = useTasks();
@@ -84,6 +85,7 @@ export function TaskList() {
           </div>
         </ScrollArea>
       )}
+      <BulkActionsToolbar />
     </div>
   );
 }

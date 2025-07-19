@@ -112,15 +112,12 @@ export function useUpdateTask() {
   >({
     mutationFn: ({ id, data }) => taskApi.updateTask(id, data),
     onMutate: async ({ id, data }) => {
-      // လက်ရှိ fetch နေတာတွေကို cancel လုပ်ပါ
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
 
-      // Rollback လုပ်ဖို့အတွက် မူလ data ကို backup လုပ်ပါ
       const previousTasks = queryClient.getQueryData<Task[]>(
         QUERY_KEYS.tasks.all
       );
 
-      // React Query cache ကို တိုက်ရိုက် update လုပ်ပါ
       queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
         oldTasks.map((task) => {
           if (task.id === id) {
@@ -203,6 +200,43 @@ export function useDeleteTask() {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.tasks.all,
       });
+    },
+  });
+}
+
+// Bulk Delete Tasks
+export function useBulkDeleteTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { success: boolean; deletedCount: number },
+    Error,
+    string[],
+    { previousTasks?: Task[] }
+  >({
+    mutationFn: (taskIds: string[]) => taskApi.bulkDeleteTasks(taskIds),
+    onMutate: async (taskIdsToDelete) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
+      const previousTasks = queryClient.getQueryData<Task[]>(
+        QUERY_KEYS.tasks.all
+      );
+
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+        oldTasks.filter((task) => !taskIdsToDelete.includes(task.id))
+      );
+      return { previousTasks };
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.deletedCount} tasks deleted successfully!`);
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+      }
+      toast.error('Failed to delete tasks.Please try again.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks.all });
     },
   });
 }

@@ -62,3 +62,14 @@ export async function deleteTask(id: string): Promise<{ success: boolean }> {
   });
   return handleResponse<{ success: boolean }>(response);
 }
+
+export async function bulkDeleteTasks(
+  taskIds: string[]
+): Promise<{ success: boolean; deletedCount: number }> {
+  const response = await fetch(`/api/tasks/bulk-delete`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ taskIds }),
+  });
+  return handleResponse(response);
+}
