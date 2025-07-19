@@ -240,3 +240,46 @@ export function useBulkDeleteTasks() {
     },
   });
 }
+
+// Bulk Update Tasks
+export function useBulkUpdateTasks() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { success: boolean; updatedCount: number },
+    Error,
+    { taskIds: string[]; completed: boolean },
+    { previousTasks?: Task[] }
+  >({
+    mutationFn: ({ taskIds, completed }) =>
+      taskApi.bulkUpdateTasks(taskIds, completed),
+    onMutate: async ({ taskIds, completed }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
+
+      const previousTasks = queryClient.getQueryData<Task[]>(
+        QUERY_KEYS.tasks.all
+      );
+
+      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+        oldTasks.map((task) =>
+          taskIds.includes(task.id) ? { ...task, completed } : task
+        )
+      );
+      return { previousTasks };
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.updatedCount} tasks updated.`);
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData<Task[]>(
+          QUERY_KEYS.tasks.all,
+          context.previousTasks
+        );
+      }
+      toast.error('Failed to update tasks.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks.all });
+    },
+  });
+}

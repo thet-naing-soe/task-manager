@@ -7,11 +7,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Something went wrong');
     } catch (error) {
-      throw new Error('Network error occurred');
+      if (error instanceof Error) throw error;
+      throw new Error('An unexpected network error occurred');
     }
   }
-  const data = response.json();
-  return data;
+  return response.json();
 }
 
 function getHeaders(): HeadersInit {
@@ -24,14 +24,14 @@ export async function fetchTasks(): Promise<Task[]> {
   const response = await fetch('/api/tasks', {
     headers: getHeaders(),
   });
-  return handleResponse<Task[]>(response);
+  return handleResponse(response);
 }
 
 export async function fetchTaskById(id: string): Promise<Task> {
   const response = await fetch(`/api/tasks/${id}`, {
     headers: getHeaders(),
   });
-  return handleResponse<Task>(response);
+  return handleResponse(response);
 }
 
 export async function createTask(data: CreateTaskInput): Promise<Task> {
@@ -40,7 +40,7 @@ export async function createTask(data: CreateTaskInput): Promise<Task> {
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
-  return handleResponse<Task>(response);
+  return handleResponse(response);
 }
 
 export async function updateTask(
@@ -52,7 +52,7 @@ export async function updateTask(
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
-  return handleResponse<Task>(response);
+  return handleResponse(response);
 }
 
 export async function deleteTask(id: string): Promise<{ success: boolean }> {
@@ -60,7 +60,7 @@ export async function deleteTask(id: string): Promise<{ success: boolean }> {
     method: 'DELETE',
     headers: getHeaders(),
   });
-  return handleResponse<{ success: boolean }>(response);
+  return handleResponse(response);
 }
 
 export async function bulkDeleteTasks(
@@ -70,6 +70,18 @@ export async function bulkDeleteTasks(
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ taskIds }),
+  });
+  return handleResponse(response);
+}
+
+export async function bulkUpdateTasks(
+  taskIds: string[],
+  completed: boolean
+): Promise<{ success: boolean; updatedCount: number }> {
+  const response = await fetch(`/api/tasks/bulk-update`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ taskIds, completed }),
   });
   return handleResponse(response);
 }

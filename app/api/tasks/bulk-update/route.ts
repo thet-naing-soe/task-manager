@@ -3,11 +3,12 @@ import { getCurrentUser } from '@/lib/auth-client';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-const bulkDeleteSchema = z.object({
+const bulkUpdateSchema = z.object({
   taskIds: z.array(z.string().cuid()).min(1),
+  completed: z.boolean(),
 });
 
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   try {
     const user = await getCurrentUser();
 
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const validation = bulkDeleteSchema.safeParse(body);
+    const validation = bulkUpdateSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
@@ -25,19 +26,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const { taskIds } = validation.data;
+    const { taskIds, completed } = validation.data;
 
-    const result = await prisma.task.deleteMany({
+    const result = await prisma.task.updateMany({
       where: {
-        id: {
-          in: taskIds,
-        },
+        id: { in: taskIds },
         userId: user.id,
       },
+      data: {
+        completed: completed,
+      },
     });
-    return NextResponse.json({ success: true, deletedCount: result.count });
+
+    return NextResponse.json({ success: true, updatedCount: result.count });
   } catch (error) {
-    console.error('Bulk delete error', error);
-    NextResponse.json({ error: 'Failed to delete tasks' }, { status: 500 });
+    console.error('Bulk update error', error);
+    return NextResponse.json(
+      { error: 'Failed to update tasks' },
+      { status: 500 }
+    );
   }
 }

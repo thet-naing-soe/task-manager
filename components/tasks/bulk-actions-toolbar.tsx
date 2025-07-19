@@ -1,8 +1,8 @@
 'use client';
 
 import { useSelectionStore } from '@/lib/stores/selection-store';
-import { useBulkDeleteTasks } from '@/hooks/use-tasks';
-import { Trash2, X } from 'lucide-react';
+import { useBulkDeleteTasks, useBulkUpdateTasks } from '@/hooks/use-tasks';
+import { CheckCircle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -18,19 +18,28 @@ import {
 
 export function BulkActionsToolbar() {
   const { selectedTaskIds, clearSelection } = useSelectionStore();
-  const { mutate: deleteTasks, isPending } = useBulkDeleteTasks();
+  const { mutate: deleteTasks, isPending: isDeleting } = useBulkDeleteTasks();
+  const { mutate: updateTasks, isPending: isUpdating } = useBulkUpdateTasks();
+  const isPending = isUpdating || isDeleting;
+
   const selectedCount = selectedTaskIds.size;
 
   if (selectedCount === 0) {
     return null;
   }
 
+  const handleUpdateSelected = (completed: boolean) => {
+    const idsToUpdate = Array.from(selectedTaskIds);
+    updateTasks(
+      { taskIds: idsToUpdate, completed },
+      { onSuccess: () => clearSelection() }
+    );
+  };
+
   const handleDeleteSelected = () => {
     const idsToDelete = Array.from(selectedTaskIds);
     deleteTasks(idsToDelete, {
-      onSuccess: () => {
-        clearSelection();
-      },
+      onSuccess: () => clearSelection(),
     });
   };
 
@@ -39,6 +48,15 @@ export function BulkActionsToolbar() {
       <p className="text-small font-medium px-2">
         {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
       </p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleUpdateSelected(true)}
+        disabled={isPending}
+      >
+        <CheckCircle className="w-4 h-4 mr-2" />
+        Mark as Complete
+      </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" size="sm" disabled={isPending}>
