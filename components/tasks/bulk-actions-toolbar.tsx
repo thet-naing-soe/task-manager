@@ -20,7 +20,6 @@ export function BulkActionsToolbar() {
   const { selectedTaskIds, clearSelection } = useSelectionStore();
   const { mutate: deleteTasks, isPending: isDeleting } = useBulkDeleteTasks();
   const { mutate: updateTasks, isPending: isUpdating } = useBulkUpdateTasks();
-  const isPending = isUpdating || isDeleting;
 
   const selectedCount = selectedTaskIds.size;
 
@@ -52,15 +51,15 @@ export function BulkActionsToolbar() {
         variant="outline"
         size="sm"
         onClick={() => handleUpdateSelected(true)}
-        disabled={isPending}
+        disabled={isUpdating}
       >
         <CheckCircle className="w-4 h-4 mr-2" />
         Mark as Complete
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="sm" disabled={isPending}>
-            {isPending ? (
+          <Button variant="destructive" size="sm" disabled={isDeleting}>
+            {isDeleting ? (
               'Deleting...'
             ) : (
               <>
@@ -83,7 +82,7 @@ export function BulkActionsToolbar() {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDeleteSelected}
-              disabled={isPending}
+              disabled={isDeleting}
             >
               Delete
             </AlertDialogAction>
