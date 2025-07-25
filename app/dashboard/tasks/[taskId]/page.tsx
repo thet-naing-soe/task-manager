@@ -2,7 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import { useTask } from '@/hooks/use-tasks';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
   Card,
   CardContent,
@@ -15,6 +14,8 @@ import { FileText, Calendar, CheckCircle, Circle, Tag } from 'lucide-react';
 import { PRIORITY_STYLES } from '@/lib/constants/tasks';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { ErrorState } from '@/components/shared/error-state';
+import { EmptyState } from '@/components/shared/empty-state';
 
 export default function TaskDetailPage() {
   const params = useParams();
@@ -27,27 +28,16 @@ export default function TaskDetailPage() {
   }
 
   if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-      </Alert>
-    );
+    return <ErrorState error={error} />;
   }
 
   if (!task) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Task Not Found</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            The task you are looking for does not exist or you do not have
-            permission to view it.
-          </p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        title="Task Not Found"
+        message="The task you are looking for does not exist or you do not have
+            permission to view it."
+      />
     );
   }
 

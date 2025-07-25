@@ -6,27 +6,7 @@ import { Task } from '@prisma/client';
 import * as taskApi from '@/lib/api/tasks';
 import { QUERY_KEYS } from '@/lib/constants/tasks';
 import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
-
-// Helper function for error messages
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return 'An unexpected error occurred';
-}
-
-// Helper function for date conversion
-function convertToDate(
-  dateValue: string | Date | null | undefined
-): Date | null {
-  if (!dateValue) return null;
-  if (dateValue instanceof Date) return dateValue;
-
-  try {
-    const date = new Date(dateValue);
-    return isNaN(date.getTime()) ? null : date;
-  } catch {
-    return null;
-  }
-}
+import { convertToDate, getErrorMessage } from '@/lib/api/utils';
 
 // Fetch all tasks
 export function useTasks() {

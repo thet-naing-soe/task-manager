@@ -6,8 +6,8 @@ import { useFilterStore } from '@/lib/stores/filter-store';
 import { TaskItem } from '@/components/tasks/task-item';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TaskSkeleton } from '@/components/tasks/task-skeleton';
-import { EmptyState } from '@/components/tasks/empty-state';
-import { ErrorState } from '@/components/tasks/error-state';
+import { EmptyState } from '@/components/shared/empty-state';
+import { ErrorState } from '@/components/shared/error-state';
 import { TaskFilters } from '@/components/tasks/task-filter';
 import { PRIORITY_ORDER } from '@/lib/constants/tasks';
 import { BulkActionsToolbar } from '@/components/tasks/bulk-actions-toolbar';
@@ -75,7 +75,7 @@ export function TaskList() {
     <div>
       <TaskFilters />
       {processedTasks.length === 0 ? (
-        <EmptyState />
+        <EmptyState message="No tasks yet. Create your first task!" />
       ) : (
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">

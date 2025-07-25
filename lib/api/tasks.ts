@@ -1,24 +1,6 @@
 import type { Task } from '@prisma/client';
-import type { CreateTaskInput, UpdateTaskInput } from '../validations/task';
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    try {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Something went wrong');
-    } catch (error) {
-      if (error instanceof Error) throw error;
-      throw new Error('An unexpected network error occurred');
-    }
-  }
-  return response.json();
-}
-
-function getHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-  };
-}
+import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
+import { handleResponse, getHeaders } from '@/lib/api/utils';
 
 export async function fetchTasks(): Promise<Task[]> {
   const response = await fetch('/api/tasks', {
