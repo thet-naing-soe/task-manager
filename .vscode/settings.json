@@ -28,8 +28,8 @@
     "**/.env.local/**": true,
     "**/tmp/**": true
   },
-  "files.exclude": {
-    "**/.env/**": true,
-    "**/.env.local/**": true
-  }
+  // "files.exclude": {
+  //   "**/.env/**": true,
+  //   "**/.env.local/**": true
+  // }
 }

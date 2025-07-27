@@ -30,7 +30,7 @@ export function TaskSection() {
           <CardTitle>Your Tasks</CardTitle>
           <CardDescription>View and manage your tasks</CardDescription>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col space-y-2 w-full items-center md:flex-row md:items-center md:space-y-0 md:space-x-2 md:w-auto">
           <Button onClick={openAddTaskModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add New Task
