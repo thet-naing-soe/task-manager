@@ -14,18 +14,21 @@ import {
   DueDateField,
 } from '@/components/tasks/form-fields';
 import { DEFAULT_TASK_VALUES } from '@/lib/constants/tasks';
+import { useFilterValues } from '@/lib/stores/filter-store';
 
 interface AddTaskFormProps {
   onSuccess?: () => void;
 }
 
 export function AddTaskForm({ onSuccess }: AddTaskFormProps) {
-  const form = useForm<CreateTaskInput>({
+  const form = useForm({
     resolver: zodResolver(createTaskSchema),
     defaultValues: DEFAULT_TASK_VALUES,
   });
 
-  const { mutate: addTask, isPending } = useCreateTask();
+  const filters = useFilterValues();
+
+  const { mutate: addTask, isPending } = useCreateTask(filters);
 
   const handleSubmit = (data: CreateTaskInput) => {
     addTask(data, {

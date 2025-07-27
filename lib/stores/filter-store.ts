@@ -1,18 +1,16 @@
 import { Priority } from '@prisma/client';
 import { devtools } from 'zustand/middleware';
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
+import React from 'react';
 
 type StatusFilter = 'all' | 'completed' | 'pending';
-type SortOption = 'createAt' | 'dueDate' | 'priority';
+type SortOption = 'createdAt' | 'dueDate' | 'priority';
 
 interface FilterStoreState {
-  // State
   searchQuery: string;
   status: StatusFilter;
   priority: Priority | 'all';
   sortBy: SortOption;
-
-  // Actions
   setSearchQuery: (query: string) => void;
   setStatus: (status: StatusFilter) => void;
   setPriority: (priority: Priority | 'all') => void;
@@ -24,21 +22,31 @@ const initialState = {
   searchQuery: '',
   status: 'all' as StatusFilter,
   priority: 'all' as Priority | 'all',
-  sortBy: 'createAt' as SortOption,
+  sortBy: 'createdAt' as SortOption,
 };
 
-export const useFilterStore = create<FilterStoreState>()(
-  devtools(
-    (set) => ({
-      ...initialState,
-      setSearchQuery: (query) =>
-        set({ searchQuery: query }, false, 'SET_SEARCH_QUERY'),
-      setStatus: (status) => set({ status: status }, false, 'SET_STATUS'),
-      setPriority: (priority) =>
-        set({ priority: priority }, false, 'SET_PRIORITY'),
-      setSortBy: (option) => set({ sortBy: option }, false, 'SET_SORT_BY'),
-      resetFilters: () => set(initialState, false, 'RESET_FILTERS'),
-    }),
-    { name: 'FilterStore' }
-  )
+const filterStoreInitializer: StateCreator<FilterStoreState> = (set) => ({
+  ...initialState,
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setStatus: (status) => set({ status: status }),
+  setPriority: (priority) => set({ priority: priority }),
+  setSortBy: (option) => set({ sortBy: option }),
+  resetFilters: () => set(initialState),
+});
+
+export const useFilterStore = create(
+  devtools(filterStoreInitializer, { name: 'FilterStore' })
 );
+
+// Filter values for new custom hook
+export const useFilterValues = () => {
+  const searchQuery = useFilterStore((state) => state.searchQuery);
+  const status = useFilterStore((state) => state.status);
+  const priority = useFilterStore((state) => state.priority);
+  const sortBy = useFilterStore((state) => state.sortBy);
+
+  return React.useMemo(
+    () => ({ searchQuery, status, priority, sortBy }),
+    [searchQuery, status, priority, sortBy]
+  );
+};

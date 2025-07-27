@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { Task } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,7 +12,6 @@ import { format } from 'date-fns';
 import { useDeleteTask, useUpdateTask } from '@/hooks/use-tasks';
 import { PRIORITY_STYLES } from '@/lib/constants/tasks';
 import { useEditingStore } from '@/lib/stores/editing-store';
-import { EditTaskForm } from '@/components/tasks/edit-task-form';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,14 +24,26 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useSelectionStore } from '@/lib/stores/selection-store';
+import dynamic from 'next/dynamic';
+import { useFilterValues } from '@/lib/stores/filter-store';
 
 interface TaskItemProps {
   task: Task;
 }
 
-export function TaskItem({ task }: TaskItemProps) {
-  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
-  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
+// Dynamically import the EditTaskForm
+const EditTaskForm = dynamic(
+  () =>
+    import('@/components/tasks/edit-task-form').then((mod) => mod.EditTaskForm),
+  {
+    loading: () => <p>Loading form...</p>,
+  }
+);
+
+export const TaskItem = React.memo(function TaskItem({ task }: TaskItemProps) {
+  const filters = useFilterValues();
+  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask(filters);
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask(filters);
   const isLoading = isUpdating || isDeleting;
   const { editingTaskId, setEditingTaskId } = useEditingStore();
   const isEditing = editingTaskId === task.id;
@@ -103,7 +115,7 @@ export function TaskItem({ task }: TaskItemProps) {
       )}
     </div>
   );
-}
+});
 
 function TaskContent({ task }: { task: Task }) {
   return (

@@ -89,7 +89,6 @@ export async function GET(request: Request) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('Error exporting tasks:', error);
     return NextResponse.json(
       { error: 'Failed to export tasks' },
       { status: 500 }

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Priority } from '@prisma/client';
 
 export const taskSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100),
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be 100 characters or less'),
   description: z.string().optional(),
   priority: z.nativeEnum(Priority).default(Priority.MEDIUM),
   dueDate: z.string().optional(),

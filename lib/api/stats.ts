@@ -1,5 +1,5 @@
 import { Priority } from '@prisma/client';
-import { handleResponse } from '@/lib/api/utils';
+import { handleResponse } from '@/lib/utils';
 
 export interface TaskStats {
   total: number;

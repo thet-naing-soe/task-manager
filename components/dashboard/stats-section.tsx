@@ -41,26 +41,18 @@ export function StatsSection() {
           Icon={CheckCircle2}
         />
         <StatCard title="Pending" value={stats.pending} Icon={AlertTriangle} />
+        <StatCard title="Urgent" value={stats.byPriority.URGENT} Icon={Siren} />
         <StatCard
-          title="Urgent Priority"
-          value={stats.byPriority.URGENT}
-          Icon={Siren}
-        />
-        <StatCard
-          title="High Priority"
+          title="High"
           value={stats.byPriority.HIGH}
           Icon={SignalHigh}
         />
         <StatCard
-          title="Medium Priority"
+          title="Medium"
           value={stats.byPriority.MEDIUM}
           Icon={SignalMedium}
         />
-        <StatCard
-          title="Low Priority"
-          value={stats.byPriority.LOW}
-          Icon={SignalLow}
-        />
+        <StatCard title="Low" value={stats.byPriority.LOW} Icon={SignalLow} />
       </div>
     </div>
   );
@@ -78,7 +70,9 @@ function StatCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-nowrap">
+          {title}
+        </CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>

@@ -12,7 +12,6 @@ export async function GET() {
       userCount,
     });
   } catch (error) {
-    console.error('Database connection errro', error);
     return NextResponse.json(
       {
         success: false,

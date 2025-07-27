@@ -14,9 +14,11 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout user={user}>
-      <WelcomeSection userName={user.name || 'User'} />
-      <StatsSection />
-      <TaskSection />
+      <div className="space-y-3">
+        <WelcomeSection userName={user.name || 'User'} />
+        <StatsSection />
+        <TaskSection />
+      </div>
     </DashboardLayout>
   );
 }

@@ -6,13 +6,21 @@ import { Task } from '@prisma/client';
 import * as taskApi from '@/lib/api/tasks';
 import { QUERY_KEYS } from '@/lib/constants/tasks';
 import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
-import { convertToDate, getErrorMessage } from '@/lib/api/utils';
+import { convertToDate, getErrorMessage } from '@/lib/utils';
 
-// Fetch all tasks
-export function useTasks() {
+interface TaskFilters {
+  searchQuery: string;
+  status: string;
+  priority: string;
+  sortBy: string;
+}
+
+// Fetch all tasks with filters
+export function useTasks(filters: TaskFilters) {
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
   return useQuery<Task[], Error>({
-    queryKey: QUERY_KEYS.tasks.all,
-    queryFn: taskApi.fetchTasks,
+    queryKey,
+    queryFn: () => taskApi.fetchTasks(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -27,16 +35,15 @@ export function useTask(taskId: string) {
 }
 
 // Create task
-export function useCreateTask() {
+export function useCreateTask(filters: TaskFilters) {
   const queryClient = useQueryClient();
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
 
   return useMutation<Task, Error, CreateTaskInput, { previousTasks?: Task[] }>({
     mutationFn: taskApi.createTask,
     onMutate: async (newTaskData) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
-      const previousTasks = queryClient.getQueryData<Task[]>(
-        QUERY_KEYS.tasks.all
-      );
+      await queryClient.cancelQueries({ queryKey });
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
       const optimisticTask: Task = {
         id: `temp-${Date.now()}`,
@@ -49,7 +56,7 @@ export function useCreateTask() {
         dueDate: newTaskData.dueDate ? new Date(newTaskData.dueDate) : null,
       };
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (old) =>
+      queryClient.setQueryData<Task[]>(queryKey, (old) =>
         old ? [...old, optimisticTask] : [optimisticTask]
       );
 
@@ -58,13 +65,13 @@ export function useCreateTask() {
 
     onError: (err, _, context) => {
       if (context?.previousTasks) {
-        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+        queryClient.setQueryData(queryKey, context.previousTasks);
       }
       toast.error(getErrorMessage(err));
     },
 
     onSuccess: (newlyCreatedTask) => {
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks) =>
+      queryClient.setQueryData<Task[]>(queryKey, (oldTasks) =>
         oldTasks?.map((task) =>
           task.id.startsWith('temp-') ? newlyCreatedTask : task
         )
@@ -74,15 +81,16 @@ export function useCreateTask() {
     onSettled: () => {
       // Refetch to ensure consistency
       queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.tasks.all,
+        queryKey,
       });
     },
   });
 }
 
 // Update task
-export function useUpdateTask() {
+export function useUpdateTask(filters: TaskFilters) {
   const queryClient = useQueryClient();
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
 
   return useMutation<
     Task,
@@ -92,13 +100,11 @@ export function useUpdateTask() {
   >({
     mutationFn: ({ id, data }) => taskApi.updateTask(id, data),
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
+      await queryClient.cancelQueries({ queryKey });
 
-      const previousTasks = queryClient.getQueryData<Task[]>(
-        QUERY_KEYS.tasks.all
-      );
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+      queryClient.setQueryData<Task[]>(queryKey, (oldTasks = []) =>
         oldTasks.map((task) => {
           if (task.id === id) {
             return {
@@ -118,7 +124,7 @@ export function useUpdateTask() {
     },
     onError: (error, _, context) => {
       if (context?.previousTasks) {
-        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+        queryClient.setQueryData(queryKey, context.previousTasks);
       }
       toast.error(`Update failed: ${getErrorMessage(error)}`);
     },
@@ -135,15 +141,16 @@ export function useUpdateTask() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.tasks.all,
+        queryKey,
       });
     },
   });
 }
 
 // Delete task
-export function useDeleteTask() {
+export function useDeleteTask(filters: TaskFilters) {
   const queryClient = useQueryClient();
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
 
   return useMutation<
     { success: boolean },
@@ -154,14 +161,12 @@ export function useDeleteTask() {
     mutationFn: taskApi.deleteTask,
     onMutate: async (taskId) => {
       await queryClient.cancelQueries({
-        queryKey: QUERY_KEYS.tasks.all,
+        queryKey,
       });
 
-      const previousTasks = queryClient.getQueryData<Task[]>(
-        QUERY_KEYS.tasks.all
-      );
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+      queryClient.setQueryData<Task[]>(queryKey, (oldTasks = []) =>
         oldTasks.filter((task) => task.id !== taskId)
       );
 
@@ -169,7 +174,7 @@ export function useDeleteTask() {
     },
     onError: (error, _, context) => {
       if (context?.previousTasks) {
-        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+        queryClient.setQueryData(queryKey, context.previousTasks);
       }
       toast.error(`Failed to delete task: ${getErrorMessage(error)}`);
     },
@@ -178,15 +183,16 @@ export function useDeleteTask() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.tasks.all,
+        queryKey,
       });
     },
   });
 }
 
 // Bulk Delete Tasks
-export function useBulkDeleteTasks() {
+export function useBulkDeleteTasks(filters: TaskFilters) {
   const queryClient = useQueryClient();
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
 
   return useMutation<
     { success: boolean; deletedCount: number },
@@ -196,12 +202,10 @@ export function useBulkDeleteTasks() {
   >({
     mutationFn: (taskIds: string[]) => taskApi.bulkDeleteTasks(taskIds),
     onMutate: async (taskIdsToDelete) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
-      const previousTasks = queryClient.getQueryData<Task[]>(
-        QUERY_KEYS.tasks.all
-      );
+      await queryClient.cancelQueries({ queryKey });
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+      queryClient.setQueryData<Task[]>(queryKey, (oldTasks = []) =>
         oldTasks.filter((task) => !taskIdsToDelete.includes(task.id))
       );
       return { previousTasks };
@@ -211,19 +215,21 @@ export function useBulkDeleteTasks() {
     },
     onError: (err, variables, context) => {
       if (context?.previousTasks) {
-        queryClient.setQueryData(QUERY_KEYS.tasks.all, context.previousTasks);
+        queryClient.setQueryData(queryKey, context.previousTasks);
       }
       toast.error('Failed to delete tasks.Please try again.');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks.all });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
 
 // Bulk Update Tasks
-export function useBulkUpdateTasks() {
+export function useBulkUpdateTasks(filters: TaskFilters) {
   const queryClient = useQueryClient();
+  const queryKey = [QUERY_KEYS.tasks.all, filters];
+
   return useMutation<
     { success: boolean; updatedCount: number },
     Error,
@@ -233,13 +239,11 @@ export function useBulkUpdateTasks() {
     mutationFn: ({ taskIds, completed }) =>
       taskApi.bulkUpdateTasks(taskIds, completed),
     onMutate: async ({ taskIds, completed }) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks.all });
+      await queryClient.cancelQueries({ queryKey });
 
-      const previousTasks = queryClient.getQueryData<Task[]>(
-        QUERY_KEYS.tasks.all
-      );
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
-      queryClient.setQueryData<Task[]>(QUERY_KEYS.tasks.all, (oldTasks = []) =>
+      queryClient.setQueryData<Task[]>(queryKey, (oldTasks = []) =>
         oldTasks.map((task) =>
           taskIds.includes(task.id) ? { ...task, completed } : task
         )
@@ -251,15 +255,12 @@ export function useBulkUpdateTasks() {
     },
     onError: (err, variables, context) => {
       if (context?.previousTasks) {
-        queryClient.setQueryData<Task[]>(
-          QUERY_KEYS.tasks.all,
-          context.previousTasks
-        );
+        queryClient.setQueryData<Task[]>(queryKey, context.previousTasks);
       }
       toast.error('Failed to update tasks.');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks.all });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

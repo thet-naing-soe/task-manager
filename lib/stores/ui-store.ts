@@ -12,9 +12,9 @@ export const useUIStore = create<UIStoreState>()(
     (set) => ({
       isAddTaskModalOpen: false,
       openAddTaskModal: () =>
-        set({ isAddTaskModalOpen: true }, false, 'OPEN_ADD_TASK_MODAL'),
+        set({ isAddTaskModalOpen: true }),
       closeAddTaskModal: () =>
-        set({ isAddTaskModalOpen: false }, false, 'CLOSE_ADD_TASK_MODAL'),
+        set({ isAddTaskModalOpen: false }),
     }),
     { name: 'UIStore' }
   )

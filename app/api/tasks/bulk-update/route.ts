@@ -40,7 +40,6 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true, updatedCount: result.count });
   } catch (error) {
-    console.error('Bulk update error', error);
     return NextResponse.json(
       { error: 'Failed to update tasks' },
       { status: 500 }

@@ -19,23 +19,19 @@ export const useSelectionStore = create<SelectionStoreState>()(
 
       // --- Actions ---
       toggleTaskId: (id) =>
-        set(
-          (state) => {
-            const newSelectedTaskIds = new Set(state.selectedTaskIds);
-            if (newSelectedTaskIds.has(id)) {
-              newSelectedTaskIds.delete(id);
-            } else {
-              newSelectedTaskIds.add(id);
-            }
-            return { selectedTaskIds: newSelectedTaskIds };
-          },
-          false,
-          'TOGGLE_TASK_ID'
-        ),
+        set((state) => {
+          const newSelectedTaskIds = new Set(state.selectedTaskIds);
+          if (newSelectedTaskIds.has(id)) {
+            newSelectedTaskIds.delete(id);
+          } else {
+            newSelectedTaskIds.add(id);
+          }
+          return { selectedTaskIds: newSelectedTaskIds };
+        }),
       setSelectedTaskIds: (ids) =>
-        set({ selectedTaskIds: new Set(ids) }, false, 'SET_SELECTED_TASK_IDS'),
+        set({ selectedTaskIds: new Set(ids) }),
       clearSelection: () =>
-        set({ selectedTaskIds: new Set() }, false, 'CLEAR_SELECTION'),
+        set({ selectedTaskIds: new Set() }),
     }),
     { name: 'SelectionStore' }
   )

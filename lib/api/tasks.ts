@@ -1,9 +1,20 @@
 import type { Task } from '@prisma/client';
 import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validations/task';
-import { handleResponse, getHeaders } from '@/lib/api/utils';
+import { handleResponse, getHeaders } from '@/lib/utils';
 
-export async function fetchTasks(): Promise<Task[]> {
-  const response = await fetch('/api/tasks', {
+export async function fetchTasks(filters: {
+  searchQuery: string;
+  status: string;
+  priority: string;
+  sortBy: string;
+}): Promise<Task[]> {
+  const params = new URLSearchParams({
+    search: filters.searchQuery,
+    status: filters.status,
+    priority: filters.priority,
+    sortBy: filters.sortBy,
+  });
+  const response = await fetch(`/api/tasks?${params.toString()}`, {
     headers: getHeaders(),
   });
   return handleResponse(response);

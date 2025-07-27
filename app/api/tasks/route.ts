@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-client';
 import { prisma } from '@/lib/prisma';
 import { taskSchema } from '@/lib/validations/task';
+import { Priority, Prisma } from '@prisma/client';
 import { z } from 'zod';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -12,30 +15,47 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const priority = searchParams.get('priority');
+    const status = searchParams.get('status'); // 'completed', 'pending', or 'all'
+    const priority = searchParams.get('priority'); // 'LOW', 'MEDIUM', 'HIGH', 'URGENT' or 'all'
     const search = searchParams.get('search');
+    const sortBy = searchParams.get('sortBy') || 'createdAt'; // 'createdAt', 'dueDate', 'priority'
+
+    const whereClause: Prisma.TaskWhereInput = {
+      userId: user.id,
+    };
+
+    if (status && status !== 'all') {
+      whereClause.completed = status === 'completed';
+    }
+
+    if (priority && priority !== 'all') {
+      whereClause.priority = priority as Priority;
+    }
+
+    if (search) {
+      whereClause.title = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    }
+
+    const orderByClause: Prisma.TaskOrderByWithRelationInput = {};
+
+    if (sortBy === 'priority') {
+      orderByClause.createdAt = 'desc';
+    } else if (sortBy === 'dueDate') {
+      orderByClause.dueDate = 'asc';
+    } else {
+      orderByClause.createdAt = 'desc';
+    }
 
     const tasks = await prisma.task.findMany({
-      where: {
-        userId: user.id,
-        ...(status && { completed: status === 'completed' }),
-        ...(priority && { priority: priority as any }),
-        ...(search && {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
-        }),
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: whereClause,
+      orderBy: orderByClause,
     });
 
     return NextResponse.json(tasks);
   } catch (error) {
-    console.error('Error fetching tasks:', error);
     return NextResponse.json(
       { error: 'Failed to fetch tasks' },
       { status: 500 }
@@ -72,7 +92,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error('Error creating task:', error);
     return NextResponse.json(
       { error: 'Failed to create task' },
       { status: 500 }

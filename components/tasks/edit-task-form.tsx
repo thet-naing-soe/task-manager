@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import type { Task } from '@prisma/client';
 import { useEditingStore } from '@/lib/stores/editing-store';
+import { useFilterValues } from '@/lib/stores/filter-store';
 import {
   TitleField,
   DescriptionField,
@@ -34,7 +35,9 @@ export function EditTaskForm({ task }: EditTaskFormProps) {
     },
   });
 
-  const { mutate: updateTask, isPending } = useUpdateTask();
+  const filters = useFilterValues();
+
+  const { mutate: updateTask, isPending } = useUpdateTask(filters);
 
   const handleSubmit = (data: UpdateTaskInput) => {
     updateTask(

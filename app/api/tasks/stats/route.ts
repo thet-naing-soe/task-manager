@@ -52,7 +52,6 @@ export async function GET() {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('[STATS_GET_ERROR]', error);
     return NextResponse.json(
       { error: 'Failed to fetch task statistics' },
       { status: 500 }

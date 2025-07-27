@@ -9,5 +9,27 @@
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
     "typescriptreact": "javascriptreact"
+  },
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.env/**": true,
+    "**/.env.local/**": true,
+    "**/tmp/**": true
+  },
+  "search.exclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.env/**": true,
+    "**/.env.local/**": true,
+    "**/tmp/**": true
+  },
+  "files.exclude": {
+    "**/.env/**": true,
+    "**/.env.local/**": true
   }
 }

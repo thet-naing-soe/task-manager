@@ -37,7 +37,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ success: true, deletedCount: result.count });
   } catch (error) {
-    console.error('Bulk delete error', error);
     NextResponse.json({ error: 'Failed to delete tasks' }, { status: 500 });
   }
 }

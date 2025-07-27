@@ -15,11 +15,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useFilterValues } from '@/lib/stores/filter-store';
 
 export function BulkActionsToolbar() {
   const { selectedTaskIds, clearSelection } = useSelectionStore();
-  const { mutate: deleteTasks, isPending: isDeleting } = useBulkDeleteTasks();
-  const { mutate: updateTasks, isPending: isUpdating } = useBulkUpdateTasks();
+  const filters = useFilterValues();
+  const { mutate: deleteTasks, isPending: isDeleting } =
+    useBulkDeleteTasks(filters);
+  const { mutate: updateTasks, isPending: isUpdating } =
+    useBulkUpdateTasks(filters);
 
   const selectedCount = selectedTaskIds.size;
 

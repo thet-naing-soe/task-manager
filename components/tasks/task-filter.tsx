@@ -10,6 +10,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PRIORITY_OPTIONS, SORT_OPTIONS } from '@/lib/constants/tasks';
+import { Priority } from '@prisma/client';
+
+type StatusFilter = 'all' | 'completed' | 'pending';
+type PriorityFilter = Priority | 'all';
+type SortOption = 'createdAt' | 'dueDate' | 'priority';
 
 export function TaskFilters() {
   const {
@@ -34,7 +39,10 @@ export function TaskFilters() {
       />
 
       {/* Status Filter */}
-      <Select value={status} onValueChange={(value) => setStatus(value as any)}>
+      <Select
+        value={status}
+        onValueChange={(value: StatusFilter) => setStatus(value)}
+      >
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Filter by status" />
         </SelectTrigger>
@@ -48,7 +56,7 @@ export function TaskFilters() {
       {/* Priority Filter */}
       <Select
         value={priority}
-        onValueChange={(value) => setPriority(value as any)}
+        onValueChange={(value: PriorityFilter) => setPriority(value)}
       >
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Filter by priority" />
@@ -64,7 +72,10 @@ export function TaskFilters() {
       </Select>
 
       {/* Sort by Date */}
-      <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+      <Select
+        value={sortBy}
+        onValueChange={(value: SortOption) => setSortBy(value)}
+      >
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>

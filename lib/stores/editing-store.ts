@@ -18,10 +18,10 @@ export const useEditingStore = create<EditingStoreState>()(
 
       // --- Actions ---
       setEditingTaskId: (taskId) =>
-        set({ editingTaskId: taskId }, false, 'SET_EDITING_TASK_ID'),
+        set({ editingTaskId: taskId }),
 
       clearEditingTaskId: () =>
-        set({ editingTaskId: null }, false, 'CLEAR_EDITING_TASK_ID'),
+        set({ editingTaskId: null }),
     }),
     { name: 'EditingStore' }
   )

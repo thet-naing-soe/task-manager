@@ -34,7 +34,7 @@ export const DEFAULT_TASK_VALUES = {
 } as const;
 
 export const SORT_OPTIONS = [
-  { value: 'createAt', label: 'Creation Date' },
+  { value: 'createdAt', label: 'Creation Date' },
   { value: 'dueDate', label: 'Due Date' },
   { value: 'priority', label: 'Priority' },
 ];
