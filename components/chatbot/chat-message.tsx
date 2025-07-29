@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { type ChatMessage as Message } from '@/lib/stores/chatbot-store';
+import { Bot } from 'lucide-react';
 
 interface ChatMessageProps {
   message: Message;
@@ -17,7 +18,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
     >
       {!isUser && (
         <Avatar className="h-8 w-8">
-          <AvatarFallback>🤖</AvatarFallback>
+          <AvatarFallback>
+            <Bot />
+          </AvatarFallback>
         </Avatar>
       )}
       <div

@@ -3,6 +3,7 @@
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserAvatar } from '@/components/auth/user-avatar';
 import type { User } from 'next-auth';
+import { Chatbot } from '../chatbot/chatbot';
 
 interface DashboardHeaderProps {
   user: User;
@@ -14,6 +15,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="container flex h-16 items-center px-4">
         <h1 className="text-xl font-semibold">Task Manager</h1>
         <div className="ml-auto flex items-center space-x-4">
+          <Chatbot />
           <ThemeToggle />
           <UserAvatar user={user} />
         </div>

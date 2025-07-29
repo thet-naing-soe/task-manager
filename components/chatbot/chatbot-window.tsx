@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
-import { useChatbotStore } from './chatbot-store';
+import { useChatbotStore } from '@/lib/stores/chatbot-store';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { X } from 'lucide-react';
 import { ChatInputForm } from '@/components/chatbot/chat-input-form';
 import { ChatMessage } from '@/components/chatbot/chat-message';
