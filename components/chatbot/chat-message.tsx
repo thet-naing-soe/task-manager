@@ -1,3 +1,5 @@
+'use client';
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { type ChatMessage as Message } from '@/lib/stores/chatbot-store';
@@ -25,7 +27,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       )}
       <div
         className={cn(
-          'max-w-[75%] rounded-lg px-3 py-2 text-sm break-works',
+          'max-w-[75%] rounded-lg px-3 py-2 text-sm break-words',
           isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
         )}
       >

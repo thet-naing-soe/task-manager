@@ -1,3 +1,5 @@
+'use client';
+
 import { type MessageInput, messageSchema } from '@/lib/validations/chatbot';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -23,7 +25,10 @@ export function ChatInputForm({ onSend, isSending }: ChatInputFormProps) {
   };
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex items-center gap-2 border-t p-2"
+      >
         <FormField
           control={form.control}
           name="text"

@@ -1,10 +1,12 @@
+'use client';
+
 import { type ChatMessage, useChatbotStore } from '@/lib/stores/chatbot-store';
 import { useSendMessage } from '@/hooks/use-chatbot';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@radix-ui/react-popover';
+} from '@/components/ui/popover';
 import { ChatbotTrigger } from './chatbot-trigger';
 import { ChatbotWindow } from './chatbot-window';
 
@@ -53,17 +55,19 @@ export function Chatbot() {
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <ChatbotTrigger />
-      </PopoverTrigger>
-      <PopoverContent
-        sideOffset={15}
-        align="end"
-        className="w-80 rounded-lg p-0 shadow-xl border-none"
-      >
-        <ChatbotWindow onSend={handleSendMessage} isThinking={isPending} />
-      </PopoverContent>
-    </Popover>
+    <div className="fixed bottom-5 right-5 z-50">
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <ChatbotTrigger className="rounded-full" />
+        </PopoverTrigger>
+        <PopoverContent
+          sideOffset={15}
+          align="end"
+          className="w-80 rounded-lg p-0 shadow-xl border-none"
+        >
+          <ChatbotWindow onSend={handleSendMessage} isThinking={isPending} />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

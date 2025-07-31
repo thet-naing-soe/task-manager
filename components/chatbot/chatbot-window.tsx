@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useEffect } from 'react';
 import { useChatbotStore } from '@/lib/stores/chatbot-store';
 import { Button } from '@/components/ui/button';
@@ -14,13 +16,13 @@ interface ChatbotWindowProps {
 
 export function ChatbotWindow({ onSend, isThinking }: ChatbotWindowProps) {
   const { messages, closeChat } = useChatbotStore();
-  const ScrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll effect
   useEffect(() => {
-    if (ScrollAreaRef.current) {
-      ScrollAreaRef.current.scrollTo({
-        top: ScrollAreaRef.current.scrollHeight,
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
@@ -35,7 +37,7 @@ export function ChatbotWindow({ onSend, isThinking }: ChatbotWindowProps) {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <ScrollArea ref={ScrollAreaRef} className="flex-1 p-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />

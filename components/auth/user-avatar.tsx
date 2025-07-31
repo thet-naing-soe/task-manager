@@ -31,6 +31,7 @@ export function UserAvatar({ user }: UserAvatarProps) {
             <Image
               src={user.image}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               alt={user.name || 'User Avatar'}
               className="object-cover rounded-full"
             />

@@ -6,6 +6,7 @@ import { type ThemeProviderProps } from 'next-themes/dist/types';
 import { SessionProvider } from 'next-auth/react';
 import { QueryProvider } from '@/components/query-provider';
 import { Toaster } from 'sonner';
+import { Chatbot } from '@/components/chatbot/chatbot';
 
 export default function ThemeProvider({
   children,
@@ -26,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
           {children}
           <Toaster position="top-right" richColors />
+          <Chatbot />
         </ThemeProvider>
       </QueryProvider>
     </SessionProvider>
